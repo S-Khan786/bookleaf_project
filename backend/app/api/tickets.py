@@ -151,6 +151,12 @@ def list_tickets(
     results = []
 
     for t in tickets:
+        # Role-based count: Authors only see count of public messages (never leaking hidden internal notes)
+        if current_user.role == "admin":
+            visible_count = len(t.messages)
+        else:
+            visible_count = len([m for m in t.messages if not m.is_internal_note])
+
         results.append(TicketListResponse(
             id=t.id,
             ticket_number=t.ticket_number,
@@ -163,7 +169,7 @@ def list_tickets(
             status=t.status,
             created_at=t.created_at,
             updated_at=t.updated_at,
-            messages_count=len(t.messages)
+            messages_count=visible_count
         ))
 
     return results

@@ -1,7 +1,6 @@
 from datetime import timedelta
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import verify_password, create_access_token
@@ -15,7 +14,7 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
 @router.post("/login", response_model=TokenResponse)
 def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-    """Standard JSON login endpoint for Author and Admin portals."""
+    """Unified JSON login endpoint for Author portal, Admin portal, and Swagger."""
     user = db.query(User).filter(User.email == login_data.email.lower()).first()
     if not user or not verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
@@ -30,28 +29,6 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         expires_delta=access_token_expires
     )
 
-    return TokenResponse(
-        access_token=token,
-        token_type="bearer",
-        user=UserResponse.model_validate(user)
-    )
-
-
-@router.post("/token", response_model=TokenResponse)
-def login_for_swagger(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
-):
-    """OAuth2 password flow endpoint supporting interactive Swagger UI authentication."""
-    user = db.query(User).filter(User.email == form_data.username.lower()).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    token = create_access_token(data={"sub": str(user.id), "role": user.role, "email": user.email})
     return TokenResponse(
         access_token=token,
         token_type="bearer",

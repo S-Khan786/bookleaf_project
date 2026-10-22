@@ -133,7 +133,7 @@ FastAPI generates interactive Swagger documentation automatically at `http://loc
 
 | Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/auth/login` | Public | Authenticate user & return JWT token |
+| `POST` | `/api/auth/login` | Public | Authenticate user & return JWT token (used for Web UI & Swagger) |
 | `GET` | `/api/auth/me` | Authenticated | Retrieve current user profile |
 | `GET` | `/api/auth/demo-accounts` | Public | Helper list of pre-seeded accounts |
 | `GET` | `/api/books` | Author / Admin | List books (Authors see own; Admins see all) |

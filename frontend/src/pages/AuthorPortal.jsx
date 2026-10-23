@@ -249,6 +249,7 @@ export function AuthorPortal() {
                       <th>Title & ISBN</th>
                       <th>Genre</th>
                       <th>Status</th>
+                      <th>Available On</th>
                       <th>MRP</th>
                       <th>Royalty / Copy</th>
                       <th>Copies Sold</th>
@@ -260,23 +261,27 @@ export function AuthorPortal() {
                     {books.map((b) => (
                       <tr key={b.id}>
                         <td>
-                          <strong style={{ fontSize: '0.95rem' }}>{b.title}</strong>
+                          <strong style={{ fontSize: '0.92rem', color: '#1e3a5f' }}>{b.title}</strong>
                           <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
                             {b.isbn ? `ISBN: ${b.isbn}` : 'ISBN: Pending assignment'}
                           </div>
-                          {b.available_on && b.available_on.length > 0 && (
-                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '6px' }}>
-                              {b.available_on.map((p) => (
-                                <PlatformBadge key={p} platform={p} />
-                              ))}
-                            </div>
-                          )}
                         </td>
                         <td>{b.genre || 'N/A'}</td>
                         <td>
                           <span className={`pill ${b.status.includes('Live') ? 'pill-resolved' : 'pill-inprogress'}`}>
                             {b.status}
                           </span>
+                        </td>
+                        <td>
+                          {b.available_on && b.available_on.length > 0 ? (
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', maxWidth: '240px' }}>
+                              {b.available_on.map((p) => (
+                                <PlatformBadge key={p} platform={p} />
+                              ))}
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>—</span>
+                          )}
                         </td>
                         <td>{b.mrp ? `₹${b.mrp}` : '—'}</td>
                         <td>{b.author_royalty_per_copy ? `₹${b.author_royalty_per_copy}` : '—'}</td>

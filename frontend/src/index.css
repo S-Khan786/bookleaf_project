@@ -302,7 +302,7 @@ input, textarea, select {
 }
 
 .data-table td {
-  padding: 14px 16px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }

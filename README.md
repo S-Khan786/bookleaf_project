@@ -72,13 +72,28 @@ API keys are loaded through environment variables (`.env`) via Pydantic `BaseSet
 
 ---
 
-## Local Setup & Quick Start
+## Quick Start Guide
 
-### Prerequisites
+### Option 1: 1-Command Startup via Docker (Recommended) 🐳
+
+If you have Docker installed, you can launch the entire stack (FastAPI Backend + Database Seeding + React Frontend) with one single command:
+
+```bash
+docker compose up --build
+```
+- **Web Application:** [http://localhost:5173](http://localhost:5173)
+- **Interactive Swagger Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Health Check:** [http://localhost:8000/api/health](http://localhost:8000/api/health)
+
+---
+
+### Option 2: Local Manual Setup (Without Docker)
+
+#### Prerequisites
 - Python 3.10+ (Tested on Python 3.13)
 - Node.js 18+ & npm
 
-### 1. Backend Setup
+#### 1. Backend Setup
 ```bash
 # 1. Navigate to backend
 cd backend

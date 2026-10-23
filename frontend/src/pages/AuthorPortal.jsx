@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { StatusBadge, PriorityBadge, CategoryBadge } from '../components/StatusBadge';
+import { showToast } from '../components/Toast';
 import {
   BookOpen,
   LifeBuoy,
@@ -14,8 +15,33 @@ import {
   ChevronRight,
   TrendingUp,
   CreditCard,
-  MessageSquare
+  MessageSquare,
+  ShoppingBag,
+  ExternalLink
 } from 'lucide-react';
+
+function getInitials(name) {
+  if (!name) return 'AU';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
+}
+
+function PlatformBadge({ platform }) {
+  const p = platform.toLowerCase();
+  let cls = 'platform-pill platform-bookleaf';
+  if (p.includes('amazon')) cls = 'platform-pill platform-amazon';
+  else if (p.includes('flipkart')) cls = 'platform-pill platform-flipkart';
+
+  return (
+    <span className={cls}>
+      <ShoppingBag size={10} /> {platform}
+    </span>
+  );
+}
 
 export function AuthorPortal() {
   const { user } = useAuth();
@@ -95,6 +121,7 @@ export function AuthorPortal() {
         description: formDescription,
       };
       const created = await api.createTicket(payload);
+      showToast(`Ticket ${created.ticket_number} submitted! AI assistant has drafted a response.`, 'success');
       setFeedbackMsg({ type: 'success', text: `Ticket ${created.ticket_number} created successfully! Our team and AI assistant are on it.` });
       setFormBookId('');
       setFormSubject('');
@@ -106,6 +133,7 @@ export function AuthorPortal() {
       handleSelectTicket(created.id);
       setActiveTab('tickets');
     } catch (err) {
+      showToast(err.message || 'Failed to submit ticket', 'error');
       setFeedbackMsg({ type: 'error', text: err.message || 'Failed to submit ticket' });
     } finally {
       setSubmitting(false);
@@ -122,10 +150,11 @@ export function AuthorPortal() {
         is_internal_note: false
       });
       setReplyContent('');
+      showToast('Reply sent successfully', 'success');
       const updated = await api.getTicket(selectedTicket);
       setTicketDetail(updated);
     } catch (err) {
-      alert(err.message || 'Failed to send message');
+      showToast(err.message || 'Failed to send message', 'error');
     } finally {
       setSendingReply(false);
     }
@@ -231,10 +260,17 @@ export function AuthorPortal() {
                     {books.map((b) => (
                       <tr key={b.id}>
                         <td>
-                          <strong>{b.title}</strong>
-                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          <strong style={{ fontSize: '0.95rem' }}>{b.title}</strong>
+                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
                             {b.isbn ? `ISBN: ${b.isbn}` : 'ISBN: Pending assignment'}
                           </div>
+                          {b.available_on && b.available_on.length > 0 && (
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '6px' }}>
+                              {b.available_on.map((p) => (
+                                <PlatformBadge key={p} platform={p} />
+                              ))}
+                            </div>
+                          )}
                         </td>
                         <td>{b.genre || 'N/A'}</td>
                         <td>
@@ -332,7 +368,7 @@ export function AuthorPortal() {
                 </div>
 
                 {/* Message Thread */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '420px', overflowY: 'auto', paddingRight: '6px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '420px', overflowY: 'auto', paddingRight: '6px' }}>
                   {ticketDetail.messages && ticketDetail.messages.map((m) => {
                     const isMe = m.sender_role === 'author';
                     return (
@@ -340,27 +376,40 @@ export function AuthorPortal() {
                         key={m.id}
                         style={{
                           display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: isMe ? 'flex-end' : 'flex-start',
+                          flexDirection: isMe ? 'row-reverse' : 'row',
+                          alignItems: 'flex-start',
+                          gap: '10px',
                         }}
                       >
-                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '3px' }}>
-                          <strong>{m.sender_name}</strong> {isMe ? '(You)' : '(BookLeaf Support)'} • {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div className={`avatar ${isMe ? 'avatar-author' : 'avatar-admin'}`} title={m.sender_name}>
+                          {isMe ? getInitials(m.sender_name) : 'BL'}
                         </div>
                         <div
                           style={{
-                            maxWidth: '85%',
-                            padding: '12px 16px',
-                            borderRadius: '12px',
-                            whiteSpace: 'pre-line',
-                            fontSize: '0.92rem',
-                            backgroundColor: isMe ? '#1e3a5f' : '#f1f5f9',
-                            color: isMe ? '#ffffff' : '#0f172a',
-                            borderBottomRightRadius: isMe ? '2px' : '12px',
-                            borderBottomLeftRadius: isMe ? '12px' : '2px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: isMe ? 'flex-end' : 'flex-start',
+                            maxWidth: '82%',
                           }}
                         >
-                          {m.content}
+                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '3px' }}>
+                            <strong>{m.sender_name}</strong> {isMe ? '(You)' : '(BookLeaf Support)'} • {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          <div
+                            style={{
+                              padding: '12px 16px',
+                              borderRadius: '14px',
+                              whiteSpace: 'pre-line',
+                              fontSize: '0.92rem',
+                              backgroundColor: isMe ? '#1e3a5f' : '#f1f5f9',
+                              color: isMe ? '#ffffff' : '#0f172a',
+                              borderBottomRightRadius: isMe ? '2px' : '14px',
+                              borderBottomLeftRadius: isMe ? '14px' : '2px',
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                            }}
+                          >
+                            {m.content}
+                          </div>
                         </div>
                       </div>
                     );

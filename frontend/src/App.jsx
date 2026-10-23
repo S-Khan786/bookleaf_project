@@ -4,6 +4,7 @@ import { Navbar } from './components/Navbar';
 import { Login } from './pages/Login';
 import { AuthorPortal } from './pages/AuthorPortal';
 import { AdminPortal } from './pages/AdminPortal';
+import { ToastContainer } from './components/Toast';
 
 export function App() {
   const { user, role, loading } = useAuth();
@@ -17,11 +18,17 @@ export function App() {
   }
 
   if (!user) {
-    return <Login />;
+    return (
+      <>
+        <ToastContainer />
+        <Login />
+      </>
+    );
   }
 
   return (
     <div className="app-container">
+      <ToastContainer />
       <Navbar />
       {role === 'admin' ? <AdminPortal /> : <AuthorPortal />}
     </div>

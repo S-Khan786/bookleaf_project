@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { StatusBadge, PriorityBadge, CategoryBadge } from '../components/StatusBadge';
+import { showToast } from '../components/Toast';
 import {
   Shield,
   LifeBuoy,
@@ -16,6 +17,16 @@ import {
   Clock,
   ArrowUpDown
 } from 'lucide-react';
+
+function getInitials(name) {
+  if (!name) return 'OP';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
+}
 
 const CATEGORIES = [
   'Royalty & Payments',
@@ -109,9 +120,10 @@ export function AdminPortal() {
         priority: newPriority,
       });
       setTicketDetail(updated);
+      showToast('Classification updated', 'info');
       loadTickets();
     } catch (err) {
-      alert('Failed to update classification: ' + err.message);
+      showToast('Failed to update: ' + err.message, 'error');
     }
   };
 
@@ -120,9 +132,10 @@ export function AdminPortal() {
     try {
       const updated = await api.updateTicket(ticketDetail.id, { status: newStatus });
       setTicketDetail(updated);
+      showToast(`Status changed to ${newStatus}`, 'info');
       loadTickets();
     } catch (err) {
-      alert('Failed to update status: ' + err.message);
+      showToast('Failed to update status: ' + err.message, 'error');
     }
   };
 
@@ -131,9 +144,10 @@ export function AdminPortal() {
     try {
       const updated = await api.updateTicket(ticketDetail.id, { assigned_admin_id: user.id });
       setTicketDetail(updated);
+      showToast('Ticket assigned to you', 'success');
       loadTickets();
     } catch (err) {
-      alert('Failed to assign ticket: ' + err.message);
+      showToast('Failed to assign ticket: ' + err.message, 'error');
     }
   };
 
@@ -155,9 +169,9 @@ export function AdminPortal() {
       const updated = await api.getTicket(ticketDetail.id);
       setTicketDetail(updated);
       loadTickets();
-      alert('Response sent to author successfully!');
+      showToast('Response sent to author successfully!', 'success');
     } catch (err) {
-      alert('Failed to send response: ' + err.message);
+      showToast('Failed to send response: ' + err.message, 'error');
     } finally {
       setSendingResponse(false);
     }
@@ -173,10 +187,11 @@ export function AdminPortal() {
         is_internal_note: true
       });
       setInternalNoteContent('');
+      showToast('Confidential internal note saved', 'success');
       const updated = await api.getTicket(ticketDetail.id);
       setTicketDetail(updated);
     } catch (err) {
-      alert('Failed to save internal note: ' + err.message);
+      showToast('Failed to save note: ' + err.message, 'error');
     } finally {
       setSendingNote(false);
     }
@@ -189,8 +204,9 @@ export function AdminPortal() {
       const updated = await api.regenerateDraft(ticketDetail.id);
       setTicketDetail(updated);
       setEditableDraft(updated.ai_draft_response || '');
+      showToast('AI draft response regenerated!', 'info');
     } catch (err) {
-      alert('Failed to regenerate draft: ' + err.message);
+      showToast('Failed to regenerate: ' + err.message, 'error');
     } finally {
       setRegeneratingDraft(false);
     }
@@ -419,7 +435,7 @@ export function AdminPortal() {
                   Conversation History & Notes
                 </h3>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '280px', overflowY: 'auto', paddingRight: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '280px', overflowY: 'auto', paddingRight: '4px' }}>
                   {ticketDetail.messages && ticketDetail.messages.map((m) => {
                     if (m.is_internal_note) {
                       return (
@@ -437,16 +453,28 @@ export function AdminPortal() {
                       <div
                         key={m.id}
                         style={{
-                          padding: '12px 14px',
-                          borderRadius: '8px',
-                          backgroundColor: isAuthor ? '#f1f5f9' : '#e0f2fe',
-                          borderLeft: isAuthor ? '3px solid #64748b' : '3px solid #0284c7',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '10px',
                         }}
                       >
-                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '4px' }}>
-                          <strong>{m.sender_name}</strong> ({isAuthor ? 'Author' : 'BookLeaf Ops'}) • {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div className={`avatar ${isAuthor ? 'avatar-author' : 'avatar-admin'}`} title={m.sender_name}>
+                          {isAuthor ? getInitials(m.sender_name) : 'BL'}
                         </div>
-                        <p style={{ whiteSpace: 'pre-line', fontSize: '0.92rem' }}>{m.content}</p>
+                        <div
+                          style={{
+                            flex: 1,
+                            padding: '12px 14px',
+                            borderRadius: '10px',
+                            backgroundColor: isAuthor ? '#f1f5f9' : '#e0f2fe',
+                            borderLeft: isAuthor ? '3px solid #64748b' : '3px solid #0284c7',
+                          }}
+                        >
+                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '4px' }}>
+                            <strong>{m.sender_name}</strong> ({isAuthor ? 'Author' : 'BookLeaf Ops'}) • {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          <p style={{ whiteSpace: 'pre-line', fontSize: '0.92rem' }}>{m.content}</p>
+                        </div>
                       </div>
                     );
                   })}

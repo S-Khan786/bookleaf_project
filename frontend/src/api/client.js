@@ -1,4 +1,5 @@
-const API_BASE = '/api';
+// Use environment variable in production, fallback to local proxy in development
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export const getStoredToken = () => localStorage.getItem('bookleaf_token');
 export const setStoredToken = (token) => localStorage.setItem('bookleaf_token', token);

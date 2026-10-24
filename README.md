@@ -77,6 +77,9 @@ We selected **Google Gemini (`gemini-3.5-flash-lite`)** via its OpenAI-compatibl
 - **Structured JSON Fidelity:** Demonstrates strict prompt compliance with native `json_object` enforcement, eliminating schema parsing errors.
 - **Universal Provider Portability:** Utilizing the standardized OpenAI client interface allows switching to `gpt-4o-mini` or Claude with zero code refactoring.
 
+### 6. Thread-Aware Conversation Drafting
+In active support tickets, authors frequently ask follow-up questions (such as asking for sales breakdowns between Amazon & Flipkart, or specific logistics updates). Rather than remaining locked to the original ticket description, the backend dynamically tracks the latest author message in the conversation thread. When an author posts a follow-up reply, or when an admin clicks **Regenerate Draft**, the AI evaluates the latest query in context with live author book statistics to draft an immediate, context-accurate follow-up answer ready for admin approval.
+
 ---
 
 ## Known Limitations & Future Improvements
@@ -157,11 +160,27 @@ $env:PYTHONPATH = "."
 .\venv\Scripts\pytest.exe -v tests/test_api.py
 ```
 
+### 4. Production Deployment (Cloud / Vercel / Render)
+The project is architected for seamless cloud hosting:
+- **Backend (Render / Railway / Fly.io):**
+  - **Root Directory:** `backend`
+  - **Build Command:** `pip install -r requirements.txt && python -m app.seed`
+  - **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+  - **Environment Variables:** `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `SECRET_KEY`.
+- **Frontend (Vercel / Netlify):**
+  - **Root Directory:** `frontend`
+  - **Build Command:** `npm run build`
+  - **Output Directory:** `dist`
+  - **SPA Routing:** Configured out-of-the-box via `frontend/vercel.json` single-page rewrite rules.
+  - **Environment Variable:** `VITE_API_BASE_URL=https://<your-backend-api-domain>` (defaults to local `/api` proxy in development).
+
 ---
 
 ## API Documentation (Interactive OpenAPI / Swagger)
 
 FastAPI generates interactive Swagger documentation automatically at `http://localhost:8000/docs`:
+
+> **Authentication in Swagger UI:** Click the **Authorize** button at the top right of `/docs` and paste the raw JWT token obtained from `/api/auth/login` (direct HTTPBearer authorization).
 
 | Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- |
@@ -181,7 +200,21 @@ FastAPI generates interactive Swagger documentation automatically at `http://loc
 
 ## Commit Progression History
 
+A disciplined, atomic Git commit workflow was followed throughout development:
+
 ```text
+b9e4762 feat(api): add thread-aware AI response drafting for author follow-up messages
+e9a8909 fix(ui): convert image style attributes to valid JSX style objects
+aec134e feat(ui): add branded BookLeaf open-book leaf logo to browser tab favicon, navbar, and login screen
+41f58d1 style(ui): expand parent container width to 1480px for spacious widescreen dashboard
+5878f4b style(ui): separate Available On column and compact table row height
+a0f4a9f feat(ui): upgrade dashboard with modern SaaS polish, floating toasts, user avatars, and retailer badges
+791ff70 docs: add Model Choice justification and Known Limitations section to README
+c1ea1cf chore(deploy): support VITE_API_BASE_URL and add vercel.json rewrite configuration
+7a22e26 feat(devops): add Dockerfile and docker-compose orchestration for 1-command startup
+f5a0b73 fix(api): isolate messages_count by user role to avoid leaking internal notes count to authors
+337b4f1 refactor(auth): switch to HTTPBearer authentication and remove redundant /token endpoint
+e63fa0d docs: add comprehensive README with setup guide and architectural write-up
 7d18524 feat(frontend): connect App routing, live polling, and verified production build
 7c9a00a feat(frontend): implement Admin Portal with filterable ticket queue and AI draft review
 b4bccb0 feat(frontend): implement Author Portal with book royalties and ticket submission

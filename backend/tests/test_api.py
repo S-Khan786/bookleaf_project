@@ -140,4 +140,5 @@ def test_internal_note_privacy():
 
     author_list = client.get("/api/tickets", headers=author_headers).json()
     author_t1 = next(t for t in author_list if t["id"] == ticket_id)
-    assert author_t1["messages_count"] == 1  # Author only sees count of public messages
+    assert author_t1["messages_count"] == len(author_messages)  # Author only sees count of public messages
+    assert author_t1["messages_count"] < admin_t1["messages_count"]  # Internal notes are excluded from author count

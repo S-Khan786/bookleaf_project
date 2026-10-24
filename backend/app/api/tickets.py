@@ -283,6 +283,29 @@ def post_ticket_message(
     if current_user.role == "admin" and not is_internal and ticket.status == "Open":
         ticket.status = "In Progress"
 
+    # Thread-Aware AI: If author replies with a follow-up, auto-draft response for the new query
+    if current_user.role == "author":
+        book_info = None
+        if ticket.book:
+            b = ticket.book
+            book_info = {
+                "title": b.title,
+                "isbn": b.isbn,
+                "status": b.status,
+                "total_copies_sold": b.total_copies_sold,
+                "total_royalty_earned": b.total_royalty_earned,
+                "royalty_paid": b.royalty_paid,
+                "royalty_pending": b.royalty_pending,
+                "last_royalty_payout_date": b.last_royalty_payout_date
+            }
+        ai_result = analyze_ticket_and_draft_response(
+            subject=ticket.subject,
+            description=msg_in.content,
+            author_name=current_user.name,
+            book_info=book_info
+        )
+        ticket.ai_draft_response = ai_result["draft_response"]
+
     ticket.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(new_msg)
@@ -296,7 +319,7 @@ def regenerate_ai_draft(
     admin_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Allows an admin to request a regenerated AI response draft on demand."""
+    """Allows an admin to request a regenerated AI response draft on demand for the latest query."""
     ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
     if not ticket:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
@@ -315,9 +338,13 @@ def regenerate_ai_draft(
             "last_royalty_payout_date": b.last_royalty_payout_date
         }
 
+    # Thread-aware: look for the latest message from the author in the conversation thread
+    latest_author_msg = next((m for m in reversed(ticket.messages) if m.sender_role == 'author'), None)
+    query_text = latest_author_msg.content if latest_author_msg else ticket.description
+
     ai_result = analyze_ticket_and_draft_response(
         subject=ticket.subject,
-        description=ticket.description,
+        description=query_text,
         author_name=ticket.author.name if ticket.author else "Author",
         book_info=book_info
     )

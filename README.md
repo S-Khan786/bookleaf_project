@@ -1,6 +1,6 @@
 # BookLeaf Author Support & Communication Portal
 
-An intelligent, AI-powered support and communication portal built for **BookLeaf Publishing**. It streamlines operational communication by allowing authors to review book royalties and submit queries, while empowering the internal operations team with automated ticket classification, priority scoring, and policy-accurate draft responses powered by LLM integration.
+A full-stack author communication and support desk built for **BookLeaf Publishing**. It allows authors to monitor their published titles, track real-time royalties with payout threshold logic, and submit support inquiries. For operations staff, it provides an urgency-sorted support queue, AI-assisted classification and priority scoring, policy-grounded response drafts, and confidential internal team notes.
 
 ---
 
@@ -203,6 +203,8 @@ FastAPI generates interactive Swagger documentation automatically at `http://loc
 A disciplined, atomic Git commit workflow was followed throughout development:
 
 ```text
+5ced334 test(api): add automatic teardown cleanup to prevent test pollution in database
+c3d9a55 docs: update README with thread-aware AI drafting, deployment guide, and commit history
 b9e4762 feat(api): add thread-aware AI response drafting for author follow-up messages
 e9a8909 fix(ui): convert image style attributes to valid JSX style objects
 aec134e feat(ui): add branded BookLeaf open-book leaf logo to browser tab favicon, navbar, and login screen

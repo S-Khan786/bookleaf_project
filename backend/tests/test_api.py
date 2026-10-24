@@ -1,6 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.core.database import SessionLocal
+from app.models.ticket import Ticket
+from app.models.message import Message
 
 client = TestClient(app)
 
@@ -93,6 +96,15 @@ def test_ticket_creation_and_ai_draft():
     assert ticket["ai_draft_response"] is not None
     assert len(ticket["ai_draft_response"]) > 20
 
+    # Cleanup: Remove test ticket so test runs do not pollute database
+    db = SessionLocal()
+    created_ticket = db.query(Ticket).filter(Ticket.id == ticket["id"]).first()
+    if created_ticket:
+        db.query(Message).filter(Message.ticket_id == created_ticket.id).delete()
+        db.delete(created_ticket)
+        db.commit()
+    db.close()
+
 
 def test_internal_note_privacy():
     # Login as Admin
@@ -142,3 +154,10 @@ def test_internal_note_privacy():
     author_t1 = next(t for t in author_list if t["id"] == ticket_id)
     assert author_t1["messages_count"] == len(author_messages)  # Author only sees count of public messages
     assert author_t1["messages_count"] < admin_t1["messages_count"]  # Internal notes are excluded from author count
+
+    # Cleanup: Remove the test internal note so TCK-1001 stays pristine
+    test_note_id = note_resp.json()["id"]
+    db = SessionLocal()
+    db.query(Message).filter(Message.id == test_note_id).delete()
+    db.commit()
+    db.close()

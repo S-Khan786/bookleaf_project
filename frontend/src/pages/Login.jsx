@@ -42,7 +42,7 @@ export function Login() {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ display: 'inline-flex', padding: '6px', background: '#e8f0fe', borderRadius: '16px', marginBottom: '12px' }}>
-            <img src="/favicon.svg" alt="BookLeaf Logo" width="48" height="48" style="border-radius: 12px; display: block;" />
+            <img src="/favicon.svg" alt="BookLeaf Logo" width="48" height="48" style={{ borderRadius: '12px', display: 'block' }} />
           </div>
           <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#1e3a5f' }}>BookLeaf Publishing</h1>
           <p style={{ color: '#64748b', fontSize: '0.95rem', marginTop: '4px' }}>

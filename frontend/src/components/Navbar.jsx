@@ -10,7 +10,7 @@ export function Navbar() {
   return (
     <header className="navbar">
       <div className="nav-brand">
-        <img src="/favicon.svg" alt="BookLeaf" width="28" height="28" style="border-radius: 6px; display: block;" />
+        <img src="/favicon.svg" alt="BookLeaf" width="28" height="28" style={{ borderRadius: '6px', display: 'block' }} />
         <span>BookLeaf</span>
         <span className="brand-badge">
           {role === 'admin' ? 'Operations Portal' : 'Author Portal'}
